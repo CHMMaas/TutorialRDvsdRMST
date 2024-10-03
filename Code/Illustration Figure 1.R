@@ -12,13 +12,13 @@ library(patchwork)
 library(data.table)
 
 # sample size
-n <- 100000 # TODO: 1,000,000
+n <- 1000000 # TODO: 1,000,000
 
 ###
 ### create risk
 ###
 # Coefficient of risk that controls the C-index
-beta <- 0.7
+beta <- 0.5
 
 # draw risk for each individual
 x <- rnorm(n, mean=0, sd=1)
@@ -36,9 +36,9 @@ z <- c(rep(0, n/2), rep(1, n/2))
 ### create hazard by combining risk and treatment
 ###
 # Baseline hazard that controls the event rate
-bh <- 0.2
+bh <- 0.15
 
-# large TE
+# treatment effect
 TE <- log(0.8)
 
 # combine risk and treatment into one hazard
@@ -48,9 +48,10 @@ h <- bh * exp(lp + z*TE)
 ### sample event times and make survival curve
 ###
 # sample event times
-time <- rexp(n=n, rate=h)
+# time <- rexp(n=n, rate=h)
 s <- 2
-time <- rweibull(n=n, shape=s, scale=1/(gamma(1+1/s)*exp(TE)*h)) # increasing failure rate
+time <- rweibull(n=n, shape=s,
+                 scale=1/(gamma(1+1/s)*exp(TE)*h)) # increasing failure rate
 
 # survival curve
 S <- Surv(time=time, event=rep(1, n))
@@ -65,12 +66,14 @@ S.max[S[, 1] > max.horizon, 1] <- max.horizon
 ### make risk groups
 ###
 # sort on lp and make groups on lp
-groups <- as.numeric(cut(lp, breaks=quantile(lp, probs=seq(0, 1, by=0.25), include.lowest=TRUE)))
+groups <- as.numeric(cut(lp, breaks=quantile(lp,
+                                             probs=seq(0, 1, by=0.25),
+                                             include.lowest=TRUE)))
 
 ###
 ### make Kaplan-Meier plot, stratify by treatment and risk group
 ###
-horizons <- c(2, 6, 10, 15, max.horizon)
+horizons <- c(3, 5, 10, 15)
 KM <- survival::survfit(S.max ~ z + groups, data=data.frame(S.max, z, groups))
 space <- 0.3
 plot.KM <- survminer::ggsurvplot(KM,
@@ -79,7 +82,7 @@ plot.KM <- survminer::ggsurvplot(KM,
                                  palette=c("#04bca2", "#04b4f4", "#9494fc", "#e46cf4",
                                            "#04bca2", "#04b4f4", "#9494fc", "#e46cf4"),
                                  xlim=c(0, max.horizon),
-                                 break.x.by = 2,
+                                 break.x.by = 5,
                                  legend="none")$plot
 
 # shade area in between treatment and risk stratified Kaplan-Meier curves
@@ -163,11 +166,10 @@ plot.ARD.dRMST <- ggplot2::ggplot(data=df.ARD.dRMST,
   ggplot2::geom_line(aes(y=dRMST / s), col="#42B540FF", alpha=0.5) +
   ggplot2::geom_point(aes(y=dRMST / s), size=2, shape=18, col="#42B540FF") +
   ggplot2::facet_wrap(~ horizon, ncol=length(horizons), drop=FALSE,
-                      labeller=as_labeller(c("2"=titles.lab[1],
-                                             "6"=titles.lab[2],
+                      labeller=as_labeller(c("3"=titles.lab[1],
+                                             "5"=titles.lab[2],
                                              "10"=titles.lab[3],
-                                             "15"=titles.lab[4],
-                                             "25"=titles.lab[5]))) +
+                                             "15"=titles.lab[4]))) +
   ggplot2::scale_y_continuous(
     name="ARD in %",
     sec.axis=ggplot2::sec_axis(~ . * s,
@@ -188,3 +190,7 @@ ggsave(file="Z:/Project Tutorial dRMST vs ARD/Illustration Figure 1/Illustration
        ggpubr::ggarrange(plot.KM, plot.ARD.dRMST,
                          nrow=2, ncol=1, heights=c(2, 1)),
        width=12, height=10, dpi=300)
+openxlsx::write.xlsx(data.frame(Time=LETTERS[1:4],
+                                EventRates=round(event.rates, 0),
+                                Cindexes=round(C.indexes, 2)),
+                     file="Z:/Project Tutorial dRMST vs ARD/Illustration Figure 1/Illustration.xlsx")
