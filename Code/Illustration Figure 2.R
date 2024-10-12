@@ -3,17 +3,18 @@ rm(list=ls(all.names=TRUE))
 
 # libraries
 set.seed(1)
-source("Z:/Project Tutorial dRMST vs ARD/Code/ARD.dRMST.R")
 library(dplyr)
 library(survival)
 library(survminer)
 library(patchwork)
+# remotes::install_github("CHMMaas/PredictionTools")
+library(PredictionTools)
 
 # set file path
-file.path <- "Z:/Project Tutorial dRMST vs ARD/Illustration Figure 2/"
+file.path <- "Z:/Project Tutorial dRMST vs RD/Illustration Figure 2/"
 
 # sample size
-n <- 1000000 # TODO: 1,000,000
+n <- 1000000
 
 # draw risk for each individual
 x <- rnorm(n, mean=0, sd=1)
@@ -35,33 +36,33 @@ sens.df.all <- list(const.FR.Small.TE=list(name.bh=rep(c("Low.OR", "Medium.OR", 
                                            name.C=rep(c("Low.C", "Medium.C", "High.C"), 3),
                                            beta=c(0.352, 1.00, 2.2,
                                                   0.360, 1.05, 2.7,
-                                                  0.348, 1.10, 3.1),
+                                                  0.351, 1.10, 3.1),
                                            name.TE=c("Large.TE")),
                     incr.FR.Small.TE=list(name.bh=rep(c("Low.OR", "Medium.OR", "High.OR"), each=3),
                                           bh=c(0.0441, 0.038, 0.021,
                                                0.082, 0.074, 0.049,
                                                0.116, 0.112, 0.106),
                                           name.C=rep(c("Low.C", "Medium.C", "High.C"), 3),
-                                          beta=c(0.170, 0.487, 1.08,
+                                          beta=c(0.177, 0.487, 1.08,
                                                  0.185, 0.510, 1.4,
-                                                 0.173, 0.54, 1.62)),
+                                                 0.178, 0.54, 1.62)),
                     incr.FR.Large.TE=list(name.bh=rep(c("Low.OR", "Medium.OR", "High.OR"), each=3),
                                           bh=c(0.072, 0.06, 0.033,
-                                               0.134, 0.118, 0.075,
+                                               0.133, 0.118, 0.076,
                                                0.187, 0.18, 0.172),
                                           name.C=rep(c("Low.C", "Medium.C", "High.C"), 3),
-                                          beta=c(0.170, 0.487, 1.1,
+                                          beta=c(0.180, 0.487, 1.1,
                                                  0.178, 0.512, 1.4,
-                                                 0.177, 0.532, 1.5)))
+                                                 0.177, 0.535, 1.5)))
 
 # create new results
 new.results <- TRUE
 # set time horizon
 horizon <- 10
-# set up empty data frame for ARD and dRMST
-df.ARD.dRMST <- c()
+# set up empty data frame for RD and dRMST
+df.RD.dRMST <- c()
 if (new.results){
-  # calculate ARD and dRMST using different settings
+  # calculate RD and dRMST using different settings
   settings.df <- data.frame(c("Event rate for control",
                               "KM for control",
                               "C-index",
@@ -113,19 +114,6 @@ if (new.results){
         S.h[S[, 1] > horizon, 2] <- 0
         S.h[S[, 1] > horizon, 1] <- horizon
 
-        # Cox model
-        cph <- coxph(S.h ~ x + z)
-        overall.HR <- exp(cph$coefficients["z"])
-
-        # overall ARD and dRMST
-        overall <- calculate.ARD.dRMST(S=S.h, W=z, horizon=horizon)
-
-        # sort on lp and make groups on lp
-        groups <- as.numeric(cut(lp,
-                                 breaks=quantile(lp,
-                                                 probs=seq(0, 1, by=0.25),
-                                                 include.lowest=TRUE)))
-
         # save overall characteristics
         event.rate <- sum(time[z==0]<=horizon)/length(time[z==0])*100
         C.index <- concordance(S.h ~ I(-lp), subset=z==0)$concordance
@@ -133,10 +121,23 @@ if (new.results){
             "Event rate:", round(event.rate, 0), "\n",
             "C-index:", round(C.index, 2), "\n")
 
+        # Cox model
+        cph <- coxph(S.h ~ x + z)
+        overall.HR <- exp(cph$coefficients["z"])
+
+        # overall ARD and dRMST
+        overall <- PredictionTools::calculate.RD.dRMST(S=S.h, W=z, horizon=horizon)
+
+        # sort on lp and make groups on lp
+        groups <- as.numeric(cut(lp,
+                                 breaks=quantile(lp,
+                                                 probs=seq(0, 1, by=0.25),
+                                                 include.lowest=TRUE)))
+
         # make KM plot for each risk group
         plot.KM <- list()
         HR <- c()
-        ARD <- c()
+        RD <- c()
         dRMST <- c()
         risk.control <- c()
         for (risk.group.i in 1:4){
@@ -144,11 +145,11 @@ if (new.results){
           HR <- c(HR, exp(coxph(S.h ~ z,
                                 subset=groups==risk.group.i)$coefficients))
 
-          # calculate ARD and dRMST in risk strata
-          out <- calculate.ARD.dRMST(S=S.h[groups==risk.group.i, ],
+          # calculate RD and dRMST in risk strata
+          out <- PredictionTools::calculate.RD.dRMST(S=S.h[groups==risk.group.i, ],
                                      W=z[groups==risk.group.i],
                                      horizon=horizon)
-          ARD <- c(ARD, out$ARD)
+          RD <- c(RD, out$RD)
           dRMST <- c(dRMST, out$dRMST)
 
           if (name.FR=="incr.FR" & name.TE=="Small.TE"){
@@ -190,6 +191,7 @@ if (new.results){
             plot.KM[[risk.group.i]] <- plot.KM.i$plot
           }
         }
+
         # save results
         results <- c(event.rate,
                      round(summary(survival::survfit(S.h ~ z,
@@ -201,13 +203,13 @@ if (new.results){
                      risk.control)
         settings.df <- cbind(settings.df, results)
 
-        # save ARD and dRMST results
-        df.ARD.dRMST <- rbind(df.ARD.dRMST,
+        # save RD and dRMST results
+        df.RD.dRMST <- rbind(df.RD.dRMST,
                               cbind(rep(name.FR, 4),
                                     rep(name.TE, 4),
                                     rep(event.rate, 4),
                                     rep(C.index, 4),
-                                    1:4, ARD, dRMST))
+                                    1:4, RD, dRMST))
 
         if (name.FR=="incr.FR" & name.TE=="Small.TE"){
           # KM plots
@@ -215,17 +217,17 @@ if (new.results){
                                         plot.KM[[3]], plot.KM[[4]],
                                         ncol=4, nrow=1, align="h")
 
-          # ARD and dRMST plot
-          df.ARD.dRMST.plot.i <- data.frame(risk.group=1:4, ARD, dRMST)
-          s <- max(df.ARD.dRMST.plot.i$dRMST)/max(df.ARD.dRMST.plot.i$ARD * 100)
-          ARD.dRMST.plot <- ggplot2::ggplot(data=df.ARD.dRMST.plot.i,
+          # RD and dRMST plot
+          df.RD.dRMST.plot.i <- data.frame(risk.group=1:4, RD, dRMST)
+          s <- max(df.RD.dRMST.plot.i$dRMST)/max(df.RD.dRMST.plot.i$RD * 100)
+          RD.dRMST.plot <- ggplot2::ggplot(data=df.RD.dRMST.plot.i,
                                             ggplot2::aes(x=as.numeric(risk.group)))+
-            ggplot2::geom_line(aes(y=ARD * 100), col="#AD002AFF", alpha=0.5) +
-            ggplot2::geom_point(aes(y=ARD * 100), size=3, shape=18, col="#AD002AFF") +
+            ggplot2::geom_line(aes(y=RD * 100), col="#AD002AFF", alpha=0.5) +
+            ggplot2::geom_point(aes(y=RD * 100), size=3, shape=18, col="#AD002AFF") +
             ggplot2::geom_line(aes(y=dRMST / s), col="#42B540FF", alpha=0.5) +
             ggplot2::geom_point(aes(y=dRMST / s), size=3, shape=18, col="#42B540FF") +
             ggplot2::scale_y_continuous(
-              name=paste0(horizon, "-year ARD in %"),
+              name=paste0(horizon, "-year RD in %"),
               sec.axis=ggplot2::sec_axis(~ . * s,
                                          name=paste0(horizon, "-year \u0394RMST in years"))) +
             ggplot2::scale_x_discrete(limits=as.factor(1:4)) +
@@ -249,7 +251,7 @@ if (new.results){
                              sens.df$name.bh[sens.df$bh==bh], ".",
                              sens.df$name.C[sens.df$beta==beta], ".",
                              name.TE, ".png"),
-                 plot=ggpubr::ggarrange(KM.plots, ARD.dRMST.plot,
+                 plot=ggpubr::ggarrange(KM.plots, RD.dRMST.plot,
                                         nrow=2, ncol=1, heights=c(2, 1), align="h"),
                  width=10, height=6, dpi=300)
         }
@@ -261,14 +263,14 @@ if (new.results){
   openxlsx::write.xlsx(data.frame(settings.df),
                        colNames=FALSE,
                        file=paste0(file.path, "settings.xlsx"))
-  df.ARD.dRMST <- as.data.frame(df.ARD.dRMST)
-  colnames(df.ARD.dRMST) <- c("FR", "HR", "OR",
+  df.RD.dRMST <- as.data.frame(df.RD.dRMST)
+  colnames(df.RD.dRMST) <- c("FR", "HR", "OR",
                               "Cindex", "risk.group",
-                              "ARD", "dRMST")
-  save(df.ARD.dRMST,
-       file=paste0(file.path, "df.ARD.dRMST.Rdata"))
+                              "RD", "dRMST")
+  save(df.RD.dRMST,
+       file=paste0(file.path, "df.RD.dRMST.Rdata"))
 } else{
-  load(paste0(file.path, "df.ARD.dRMST.Rdata"))
+  load(paste0(file.path, "df.RD.dRMST.Rdata"))
 }
 
 # create plots
@@ -278,14 +280,14 @@ for (name.FR in c("const.FR", "incr.FR")){
     TE <- ifelse(name.TE=="Small.TE", log(0.8), log(0.5))
 
     # initialize data frame
-    df.ARD.dRMST.select <- df.ARD.dRMST |>
+    df.RD.dRMST.select <- df.RD.dRMST |>
       filter(FR==name.FR & HR==name.TE) |>
       select(-HR, -FR) |>
       mutate(setting=rep(1:9, each=4))
 
     # plot titles
-    event.rate <- df.ARD.dRMST.select[seq(1, 36, by=4), "OR"]
-    Cindex <- df.ARD.dRMST.select[seq(1, 36, by=4), "Cindex"]
+    event.rate <- df.RD.dRMST.select[seq(1, 36, by=4), "OR"]
+    Cindex <- df.RD.dRMST.select[seq(1, 36, by=4), "Cindex"]
     titles <- paste0(LETTERS[1:9], ". ",
                      "Event rate: ", sprintf("%.0f", as.numeric(event.rate)),
                      "%, C-index: ", sprintf("%.2f", as.numeric(Cindex)))
@@ -300,7 +302,7 @@ for (name.FR in c("const.FR", "incr.FR")){
                    "9"=titles[9])
 
     # horizontal lines
-    # ordered.dRMST <- sort(c(df.ARD.dRMST.select |>
+    # ordered.dRMST <- sort(c(df.RD.dRMST.select |>
     #                           filter(setting==5) |>
     #                           select(dRMST) |>
     #                           mutate_all(as.numeric))$dRMST)
@@ -309,8 +311,8 @@ for (name.FR in c("const.FR", "incr.FR")){
     # inexpensive.treat <- ordered.dRMST[1]+diff(ordered.dRMST[1:2])/2
 
     # make plot
-    df <- data.frame(sapply(df.ARD.dRMST.select, as.numeric))
-    s <- max(df$dRMST)/max(df$ARD * 100)
+    df <- data.frame(sapply(df.RD.dRMST.select, as.numeric))
+    s <- max(df$dRMST)/max(df$RD * 100)
     if (name.FR=="const.FR" & name.TE=="Small.TE"){
       red.panels <- c(6, 8, 9)
     } else if (name.FR=="const.FR" & name.TE=="Large.TE"){
@@ -322,12 +324,12 @@ for (name.FR in c("const.FR", "incr.FR")){
     }
     plot <- ggplot2::ggplot(data=df,
                             ggplot2::aes(x=as.numeric(risk.group)))+
-      ggplot2::geom_line(aes(y=ARD * 100), col="#AD002AFF", alpha=0.5) +
-      ggplot2::geom_point(aes(y=ARD * 100), size=2, shape=18, col="#AD002AFF") +
+      ggplot2::geom_line(aes(y=RD * 100), col="#AD002AFF", alpha=0.5) +
+      ggplot2::geom_point(aes(y=RD * 100), size=2, shape=18, col="#AD002AFF") +
       ggplot2::geom_line(aes(y=dRMST / s), col="#42B540FF", alpha=0.5) +
       ggplot2::geom_point(aes(y=dRMST / s), size=2, shape=18, col="#42B540FF") +
       ggplot2::scale_y_continuous(
-        name=paste0(horizon, "-year ARD in %"),
+        name=paste0(horizon, "-year RD in %"),
         sec.axis=ggplot2::sec_axis(~ . * s,
                                    name=paste0(horizon, "-year \u0394RMST in years"))) +
       geom_rect(data=subset(df, setting %in% red.panels),

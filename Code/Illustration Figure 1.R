@@ -3,16 +3,18 @@ rm(list=ls(all.names=TRUE))
 
 # libraries
 set.seed(1)
-source("Z:/Project Tutorial dRMST vs ARD/Code/ARD.dRMST.R")
+# source("Z:/Project Tutorial dRMST vs RD/Code/RD.dRMST.R")
 library(dplyr)
 library(tidyverse)
 library(survival)
 library(survminer)
 library(patchwork)
 library(data.table)
+# remotes::install_github("CHMMaas/PredictionTools")
+library(PredictionTools)
 
 # sample size
-n <- 1000000 # TODO: 1,000,000
+n <- 1000000
 
 ###
 ### create risk
@@ -124,19 +126,19 @@ for (i in 1:length(horizons)){
 }
 
 ###
-### calculate ARD and dRMST in each risk group at each time horizon
+### calculate RD and dRMST in each risk group at each time horizon
 ###
-ARD <- c()
+RD <- c()
 dRMST <- c()
 event.rates <- c()
 C.indexes <- c()
 for (horizon.sel in horizons){
   for (risk.group.i in 1:4){
-    # calculate ARD and dRMST in risk strata
-    out <- calculate.ARD.dRMST(S=S.max[groups==risk.group.i, ],
+    # calculate RD and dRMST in risk strata
+    out <- PredictionTools::calculate.RD.dRMST(S=S.max[groups==risk.group.i, ],
                                W=z[groups==risk.group.i],
                                horizon=horizon.sel)
-    ARD <- c(ARD, out$ARD)
+    RD <- c(RD, out$RD)
     dRMST <- c(dRMST, out$dRMST)
   }
 
@@ -148,21 +150,21 @@ for (horizon.sel in horizons){
   C.indexes <- c(C.indexes,
                  concordance(S.h.sel ~ I(-lp), subset=z==0)$concordance)
 }
-df.ARD.dRMST <- data.frame(horizon=rep(horizons, each=4),
+df.RD.dRMST <- data.frame(horizon=rep(horizons, each=4),
                            risk.group=rep(1:4, length(horizons)),
-                           ARD, dRMST)
+                           RD, dRMST)
 
 ###
-### plot ARD and dRMST
+### plot RD and dRMST
 ###
-s <- max(df.ARD.dRMST$dRMST)/max(df.ARD.dRMST$ARD * 100)
+s <- max(df.RD.dRMST$dRMST)/max(df.RD.dRMST$RD * 100)
 titles.lab <- paste0(LETTERS[1:length(horizons)], ". ", horizons,
                      "-year horizon, event rate: ",
                      sprintf("%.0f", event.rates), "%")
-plot.ARD.dRMST <- ggplot2::ggplot(data=df.ARD.dRMST,
+plot.RD.dRMST <- ggplot2::ggplot(data=df.RD.dRMST,
                                   ggplot2::aes(x=as.numeric(risk.group)))+
-  ggplot2::geom_line(aes(y=ARD * 100), col="#AD002AFF", alpha=0.5) +
-  ggplot2::geom_point(aes(y=ARD * 100), size=2, shape=18, col="#AD002AFF") +
+  ggplot2::geom_line(aes(y=RD * 100), col="#AD002AFF", alpha=0.5) +
+  ggplot2::geom_point(aes(y=RD * 100), size=2, shape=18, col="#AD002AFF") +
   ggplot2::geom_line(aes(y=dRMST / s), col="#42B540FF", alpha=0.5) +
   ggplot2::geom_point(aes(y=dRMST / s), size=2, shape=18, col="#42B540FF") +
   ggplot2::facet_wrap(~ horizon, ncol=length(horizons), drop=FALSE,
@@ -171,7 +173,7 @@ plot.ARD.dRMST <- ggplot2::ggplot(data=df.ARD.dRMST,
                                              "10"=titles.lab[3],
                                              "15"=titles.lab[4]))) +
   ggplot2::scale_y_continuous(
-    name="ARD in %",
+    name="RD in %",
     sec.axis=ggplot2::sec_axis(~ . * s,
                                name="\u0394RMST in years")) +
   ggplot2::scale_x_discrete(limits=as.factor(1:4)) +
@@ -184,13 +186,13 @@ plot.ARD.dRMST <- ggplot2::ggplot(data=df.ARD.dRMST,
                  plot.margin=unit(c(0, 0, 0, 0.8), "cm"))
 
 ###
-### combine KM and ARD, dRMST plot
+### combine KM and RD, dRMST plot
 ###
-ggsave(file="Z:/Project Tutorial dRMST vs ARD/Illustration Figure 1/Illustration.png",
-       ggpubr::ggarrange(plot.KM, plot.ARD.dRMST,
+ggsave(file="Z:/Project Tutorial dRMST vs RD/Illustration Figure 1/Illustration.png",
+       ggpubr::ggarrange(plot.KM, plot.RD.dRMST,
                          nrow=2, ncol=1, heights=c(2, 1)),
        width=12, height=10, dpi=300)
 openxlsx::write.xlsx(data.frame(Time=LETTERS[1:4],
                                 EventRates=round(event.rates, 0),
                                 Cindexes=round(C.indexes, 2)),
-                     file="Z:/Project Tutorial dRMST vs ARD/Illustration Figure 1/Illustration.xlsx")
+                     file="Z:/Project Tutorial dRMST vs RD/Illustration Figure 1/Illustration.xlsx")
