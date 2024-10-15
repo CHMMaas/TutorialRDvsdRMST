@@ -11,7 +11,7 @@ library(patchwork)
 library(PredictionTools)
 
 # set file path
-file.path <- "Z:/Project Tutorial dRMST vs RD/"
+file.path <- "Z:/Project Tutorial dRMST vs RD/Figures/"
 
 # sample size
 n <- 1000000
@@ -244,7 +244,7 @@ if (new.results){
                            plot.margin=unit(c(0, 0, 0, 0.8), "cm"))
 
           # save plot
-          ggsave(file=paste0(file.path, "/Figures/Other Figures/Fig",
+          ggsave(file=paste0(file.path, "/Other Figures/Fig",
                              ifelse(name.TE=="Small.TE", "2", "3"),
                              LETTERS[nr.plot], ".",
                              name.FR, ".",
@@ -262,15 +262,15 @@ if (new.results){
   colnames(settings.df) <- c("Outcome", paste("Setting", 1:(ncol(settings.df)-1)))
   openxlsx::write.xlsx(data.frame(settings.df),
                        colNames=FALSE,
-                       file=paste0(file.path, "Figures/Other Figures/settings.xlsx"))
+                       file=paste0(file.path, "Other Figures/settings.xlsx"))
   df.RD.dRMST <- as.data.frame(df.RD.dRMST)
   colnames(df.RD.dRMST) <- c("FR", "HR", "OR",
                              "Cindex", "risk.group",
                              "RD", "dRMST")
   save(df.RD.dRMST,
-       file=paste0(file.path, "Figures/Other Figures/df.RD.dRMST.Rdata"))
+       file=paste0(file.path, "Other Figures/df.RD.dRMST.Rdata"))
 } else{
-  load(paste0(file.path, "Figures/Other Figures/df.RD.dRMST.Rdata"))
+  load(paste0(file.path, "Other Figures/df.RD.dRMST.Rdata"))
 }
 
 # create plots
@@ -344,7 +344,7 @@ for (name.FR in c("const.FR", "incr.FR")){
                      axis.title.y.right=ggplot2::element_text(color="#42B540FF"),
                      panel.grid.minor=ggplot2::element_blank(),
                      panel.grid.major=ggplot2::element_blank())
-    ggsave(file=paste0(file.path, "Figures/",
+    ggsave(file=paste0(file.path,
                        ifelse(name.FR=="incr.FR" & name.TE=="Small.TE", "Figure 3",
                               ifelse(name.FR=="incr.FR" & name.TE=="Large.TE", "Supplemental Figure 1",
                                      ifelse(name.FR=="const.FR" & name.TE=="Small.TE", "Supplemental Figure 2", "Supplemental Figure 3"))), ".png"),
