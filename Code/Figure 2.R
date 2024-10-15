@@ -57,6 +57,7 @@ time <- rweibull(n=n, shape=s,
 
 # survival curve
 S <- Surv(time=time, event=rep(1, n))
+cat("C-index:", round(concordance(S ~ I(-lp), subset=z==0)$concordance, 2), "\n")
 
 # limit S to horizon
 max.horizon <- 25
@@ -188,11 +189,11 @@ plot.RD.dRMST <- ggplot2::ggplot(data=df.RD.dRMST,
 ###
 ### combine KM and RD, dRMST plot
 ###
-ggsave(file="Z:/Project Tutorial dRMST vs RD/Illustration Figure 1/Illustration.png",
+ggsave(file="Z:/Project Tutorial dRMST vs RD/Figures/Figure 2.png",
        ggpubr::ggarrange(plot.KM, plot.RD.dRMST,
                          nrow=2, ncol=1, heights=c(2, 1)),
        width=12, height=10, dpi=300)
 openxlsx::write.xlsx(data.frame(Time=LETTERS[1:4],
                                 EventRates=round(event.rates, 0),
                                 Cindexes=round(C.indexes, 2)),
-                     file="Z:/Project Tutorial dRMST vs RD/Illustration Figure 1/Illustration.xlsx")
+                     file="Z:/Project Tutorial dRMST vs RD/Figures/Figure 2.xlsx")
