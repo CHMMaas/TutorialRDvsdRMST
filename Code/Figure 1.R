@@ -5,9 +5,7 @@ library(ggplot2)
 baseline_risk <- seq(0.1, 0.9, by = 0.01)
 n <- length(baseline_risk)
 
-###
-### Row 3: Constant HR
-###
+# constant HR
 HR.CHR <- rep(0.66, n)
 RD.CHR <- baseline_risk - 1 + (1- baseline_risk)^HR.CHR 
 RR.CHR <- (1-(1-baseline_risk)^HR.CHR)/baseline_risk
