@@ -11,7 +11,7 @@ library(patchwork)
 library(PredictionTools)
 
 # set file path
-file.path <- "Z:/Project Tutorial dRMST vs RD/Illustration Figure 2/"
+file.path <- "Z:/Project Tutorial dRMST vs RD/"
 
 # sample size
 n <- 1000000
@@ -147,8 +147,8 @@ if (new.results){
 
           # calculate RD and dRMST in risk strata
           out <- PredictionTools::calculate.RD.dRMST(S=S.h[groups==risk.group.i, ],
-                                     W=z[groups==risk.group.i],
-                                     horizon=horizon)
+                                                     W=z[groups==risk.group.i],
+                                                     horizon=horizon)
           RD <- c(RD, out$RD)
           dRMST <- c(dRMST, out$dRMST)
 
@@ -205,11 +205,11 @@ if (new.results){
 
         # save RD and dRMST results
         df.RD.dRMST <- rbind(df.RD.dRMST,
-                              cbind(rep(name.FR, 4),
-                                    rep(name.TE, 4),
-                                    rep(event.rate, 4),
-                                    rep(C.index, 4),
-                                    1:4, RD, dRMST))
+                             cbind(rep(name.FR, 4),
+                                   rep(name.TE, 4),
+                                   rep(event.rate, 4),
+                                   rep(C.index, 4),
+                                   1:4, RD, dRMST))
 
         if (name.FR=="incr.FR" & name.TE=="Small.TE"){
           # KM plots
@@ -221,7 +221,7 @@ if (new.results){
           df.RD.dRMST.plot.i <- data.frame(risk.group=1:4, RD, dRMST)
           s <- max(df.RD.dRMST.plot.i$dRMST)/max(df.RD.dRMST.plot.i$RD * 100)
           RD.dRMST.plot <- ggplot2::ggplot(data=df.RD.dRMST.plot.i,
-                                            ggplot2::aes(x=as.numeric(risk.group)))+
+                                           ggplot2::aes(x=as.numeric(risk.group)))+
             ggplot2::geom_line(aes(y=RD * 100), col="#AD002AFF", alpha=0.5) +
             ggplot2::geom_point(aes(y=RD * 100), size=3, shape=18, col="#AD002AFF") +
             ggplot2::geom_line(aes(y=dRMST / s), col="#42B540FF", alpha=0.5) +
@@ -244,7 +244,7 @@ if (new.results){
                            plot.margin=unit(c(0, 0, 0, 0.8), "cm"))
 
           # save plot
-          ggsave(file=paste0(file.path, "Panel Figures/Fig",
+          ggsave(file=paste0(file.path, "/Figures/Other Figures/Fig",
                              ifelse(name.TE=="Small.TE", "2", "3"),
                              LETTERS[nr.plot], ".",
                              name.FR, ".",
@@ -262,15 +262,15 @@ if (new.results){
   colnames(settings.df) <- c("Outcome", paste("Setting", 1:(ncol(settings.df)-1)))
   openxlsx::write.xlsx(data.frame(settings.df),
                        colNames=FALSE,
-                       file=paste0(file.path, "settings.xlsx"))
+                       file=paste0(file.path, "Figures/Other Figures/settings.xlsx"))
   df.RD.dRMST <- as.data.frame(df.RD.dRMST)
   colnames(df.RD.dRMST) <- c("FR", "HR", "OR",
-                              "Cindex", "risk.group",
-                              "RD", "dRMST")
+                             "Cindex", "risk.group",
+                             "RD", "dRMST")
   save(df.RD.dRMST,
-       file=paste0(file.path, "df.RD.dRMST.Rdata"))
+       file=paste0(file.path, "Figures/Other Figures/df.RD.dRMST.Rdata"))
 } else{
-  load(paste0(file.path, "df.RD.dRMST.Rdata"))
+  load(paste0(file.path, "Figures/Other Figures/df.RD.dRMST.Rdata"))
 }
 
 # create plots
@@ -344,7 +344,10 @@ for (name.FR in c("const.FR", "incr.FR")){
                      axis.title.y.right=ggplot2::element_text(color="#42B540FF"),
                      panel.grid.minor=ggplot2::element_blank(),
                      panel.grid.major=ggplot2::element_blank())
-    ggsave(file=paste0(file.path, name.FR, ".", name.TE, ".png"),
+    ggsave(file=paste0(file.path, "Figures/",
+                       ifelse(name.FR=="incr.FR" & name.TE=="Small.TE", "Figure 3",
+                              ifelse(name.FR=="incr.FR" & name.TE=="Large.TE", "Supplemental Figure 1",
+                                     ifelse(name.FR=="const.FR" & name.TE=="Small.TE", "Supplemental Figure 2", "Supplemental Figure 3"))), ".png"),
            plot=plot,
            width=8, height=6, dpi=300)
   }
