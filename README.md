@@ -1,4 +1,5 @@
-# Quantifying absolute treatment effect heterogeneity for time-to-event outcomes across risk strata: Divergence of conclusions with risk difference and difference in restricted mean survival time
+# Quantifying absolute treatment effect heterogeneity for time-to-event outcomes across risk strata: 
+## Divergence of conclusions with risk difference and difference in restricted mean survival time
 
 Carolien C.H.M. Maas[1, 2, 3], David M. Kent[3], Avinash G. Dinmohamed[1, 2], David van Klaveren[1, 3]
 
