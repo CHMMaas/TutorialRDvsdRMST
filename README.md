@@ -11,8 +11,7 @@ Carolien C.H.M. Maas[1, 2, 3], David M. Kent[3], Avinash G. Dinmohamed[1, 2], Da
 ### Corresponding author
 Carolien C.H.M. Maas, Erasmus University Medical Center, Doctor Molewaterplein 40, 3015 GD Rotterdam, Netherlands, c.h.m.maas@erasmusmc.nl
 
-## ABSTRACT
-Background
+## Background
 Risk-based analyses are increasingly popular for understanding heterogeneous treatment effects (HTE) in clinical trials. For time-to-event analyses, the assumption that high-risk patients benefit most on the clinically important absolute scale when hazard ratios (HRs) are constant across risk strata might not hold. Absolute treatment effects can be measured as either the risk difference (RD) at a given time point or the difference in restricted mean survival time (ΔRMST) which aligns more closely with utilitarian medical decision-making frameworks. We examined risk-based HTE analyses strata in time-to-event analyses to identify the patterns of absolute HTE across risk strata, and whether ΔRMST may lead to more meaningful treatment decisions than RD.
 
 ## Methods
