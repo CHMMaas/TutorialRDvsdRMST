@@ -17,7 +17,6 @@ library(PredictionTools)
 set.seed(1)
 new.results <- TRUE
 file.path <- "C:/Users/carol/OneDrive - Erasmus MC/Storage and Compute folder 27 November 2024/Project Tutorial dRMST vs RD/"
-file.path.original.data <- "C:/Users/carol/OneDrive - Erasmus MC/Storage and Compute folder 27 November 2024/Project Apply Benefit Performance Metrics/ApplyHTEPerformanceMetrics/Data/Original/"
 nr.RCTs <- 1:2
 g <- 4 # number of risk groups to stratify
 new.imputation <- FALSE
@@ -78,7 +77,7 @@ if (new.results){
   for (nr.RCT in nr.RCTs){
     # load original data
     data.name <- eval(parse(text=paste0("data.names$RCT", nr.RCT)))
-    original.data <- read.csv(paste0(file.path.original.data, data.name$name, ".csv"))
+    original.data <- read.csv(paste0(file.path, "Data/", data.name$name, ".csv"))
 
     if (data.name$name.long=="DPP lifestyle"){
       # select lifestyle or placebo
