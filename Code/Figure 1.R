@@ -48,7 +48,8 @@ plot.HR.CHR <- ggplot(data, aes(x = baseline_risk, y = HR.CHR)) +
   xlab("")
 
 # Show the plots
-ggsave(file="Z:/Project Tutorial dRMST vs RD/Figures/Figure 1.png",
+ggsave(file="./Figure 1.png",
        plot=ggpubr::ggarrange(plot.RD.CHR, plot.RR.CHR, plot.HR.CHR,
                               nrow=1, ncol=3),
        width=6, height=2, dpi=300)
+
