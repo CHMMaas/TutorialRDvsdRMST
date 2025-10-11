@@ -16,7 +16,7 @@ library(PredictionTools)
 # initialize
 set.seed(1)
 new.results <- TRUE
-file.path <- "C:/Users/carol/OneDrive - Erasmus MC/Storage and Compute folder 27 November 2024/Project Tutorial dRMST vs RD/"
+file.path <- "Z:/."
 nr.RCTs <- 1:2
 g <- 4 # number of risk groups to stratify
 new.imputation <- FALSE
@@ -495,3 +495,4 @@ for (length in c("median", "long")){
          plot=plot,
          width=8, height=8, dpi=300)
 }
+
