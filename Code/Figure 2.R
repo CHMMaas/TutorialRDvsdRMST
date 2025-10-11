@@ -189,7 +189,8 @@ plot.RD.dRMST <- ggplot2::ggplot(data=df.RD.dRMST,
 ###
 ### combine KM and RD, dRMST plot
 ###
-ggsave(file="Z:/Project Tutorial dRMST vs RD/Figures/Figure 2.png",
+ggsave(file="./Figure 2.png",
        ggpubr::ggarrange(plot.KM, plot.RD.dRMST,
                          nrow=2, ncol=1, heights=c(2, 1)),
        width=12, height=10, dpi=300)
+
