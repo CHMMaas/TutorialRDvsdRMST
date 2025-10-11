@@ -83,6 +83,7 @@ plot.KM <- survminer::ggsurvplot(KM,
                                  times=seq(0, max.horizon, by=1),
                                  data=data.frame(time, z, x),
                                  palette=c("#04bca2", "#04b4f4", "#9494fc", "#e46cf4",
+                                           "#04bca2", "#04b4f4", "#9494fc", "#e46cf4",
                                            "#04bca2", "#04b4f4", "#9494fc", "#e46cf4"),
                                  xlim=c(0, max.horizon),
                                  break.x.by = 5,
@@ -126,6 +127,13 @@ for (i in 1:length(horizons)){
     ggplot2::annotate("text", x=horizons[i]-space, y=ifelse(i==1, space, 1), label=LETTERS[i])
 }
 
+# add Q1-Q4 labels
+plot.KM <- plot.KM +
+  geom_text(data=data.frame(x.Q=c(5.8, 9.3, 12.7, 20.4), y.Q=rep(0.35, 4),
+                       label.Q=paste0("Q", 4:1),
+                       color.Q=c("#e46cf4", "#9494fc", "#04bca2", "#04b4f4")),
+            aes(x=x.Q, y=y.Q, label=label.Q, color=color.Q),
+            size=5)
 ###
 ### calculate RD and dRMST in each risk group at each time horizon
 ###
@@ -189,8 +197,7 @@ plot.RD.dRMST <- ggplot2::ggplot(data=df.RD.dRMST,
 ###
 ### combine KM and RD, dRMST plot
 ###
-ggsave(file="./Figure 2.png",
+ggsave(file="C:/Users/carol/Downloads/Figure 2.png",
        ggpubr::ggarrange(plot.KM, plot.RD.dRMST,
                          nrow=2, ncol=1, heights=c(2, 1)),
        width=12, height=10, dpi=300)
-
