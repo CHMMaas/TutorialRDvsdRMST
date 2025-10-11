@@ -11,7 +11,7 @@ library(patchwork)
 library(PredictionTools)
 
 # set file path
-file.path <- "Z:/Project Tutorial dRMST vs RD/Figures/"
+file.path <- "Z:/."
 
 # sample size
 n <- 1000000
@@ -352,3 +352,4 @@ for (name.FR in c("const.FR", "incr.FR")){
            width=8, height=6, dpi=300)
   }
 }
+
